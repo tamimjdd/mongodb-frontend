@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SecureNotes — Notes, Users &amp; Aggregations</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============ AUTH ============ -->
+  <div class="auth" id="authView">
+    <div class="auth__panel">
+      <aside class="auth__aside">
+        <div class="brand brand--lg">
+          <span class="brand__mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 3 4 6.5v5c0 4.6 3.2 8.6 8 9.5 4.8-.9 8-4.9 8-9.5v-5L12 3Z" />
+              <path d="m9 12 2.2 2.2L15.5 10" />
+            </svg>
+          </span>
+          <span class="brand__text">SecureNotes</span>
+        </div>
+
+        <h2 class="auth__headline">Private notes with role-based access.</h2>
+        <p class="auth__sub">
+          JWT authentication, hashed credentials, indexed queries and MongoDB
+          aggregation pipelines — all behind a clean workspace.
+        </p>
+
+        <ul class="auth__features">
+          <li><span class="dot"></span> JWT sessions with bcrypt password hashing</li>
+          <li><span class="dot"></span> Separate user and admin capabilities</li>
+          <li><span class="dot"></span> Paginated, index-backed list endpoints</li>
+          <li><span class="dot"></span> Aggregation views for interests and posts</li>
+        </ul>
+      </aside>
+
+      <section class="auth__card">
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" data-auth-tab="login" role="tab" type="button">Sign in</button>
+          <button class="tab" data-auth-tab="register" role="tab" type="button">Create account</button>
+        </div>
+
+        <form id="loginForm" class="form" autocomplete="on">
+          <h3 class="form__title">Welcome back</h3>
+          <p class="form__hint">Sign in to reach your workspace.</p>
+
+          <label class="field">
+            <span class="field__label">Email</span>
+            <input class="input" name="email" type="email" placeholder="you@example.com" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Password</span>
+            <input class="input" name="password" type="password" placeholder="••••••••" required />
+          </label>
+
+          <button class="btn btn--primary btn--block" type="submit">Sign in</button>
+
+          <p class="form__note">
+            Demo admin: <code>admin@example.com</code> / <code>Admin123!</code>
+          </p>
+        </form>
+
+        <form id="registerForm" class="form" hidden autocomplete="on">
+          <h3 class="form__title">Create your account</h3>
+          <p class="form__hint">New accounts start with the standard user role.</p>
+
+          <label class="field">
+            <span class="field__label">Full name</span>
+            <input class="input" name="name" placeholder="Alice Rahman" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Email</span>
+            <input class="input" name="email" type="email" placeholder="you@example.com" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Password</span>
+            <input class="input" name="password" type="password" placeholder="At least 6 characters" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Interests</span>
+            <input class="input" name="interests" placeholder="chess, reading, cycling" />
+            <span class="field__help">Comma separated — used by the interests aggregation.</span>
+          </label>
+
+          <button class="btn btn--primary btn--block" type="submit">Create account</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ APP ============ -->
+  <div class="shell" id="appView" hidden>
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 3 4 6.5v5c0 4.6 3.2 8.6 8 9.5 4.8-.9 8-4.9 8-9.5v-5L12 3Z" />
+            <path d="m9 12 2.2 2.2L15.5 10" />
+          </svg>
+        </span>
+        <span class="brand__text">SecureNotes</span>
+      </div>
+
+      <nav class="nav" id="nav">
+        <p class="nav__label">Workspace</p>
+        <button class="nav__item is-active" data-view="notes" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+            <path d="M5 4h9l5 5v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
+            <path d="M14 4v5h5M8 13h8M8 17h5" />
+          </svg>
+          <span>My Notes</span>
+        </button>
+        <button class="nav__item" data-view="posts" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+            <path d="M4 5h16v14H4z" /><path d="M8 9h8M8 13h8M8 17h4" />
+          </svg>
+          <span>Posts</span>
+        </button>
+        <button class="nav__item" data-view="aggregations" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+            <path d="M4 19V5M4 19h16" /><path d="M8 16V9M12 16v-4M16 16v-7" />
+          </svg>
+          <span>Aggregations</span>
+        </button>
+
+        <div data-admin-only hidden>
+          <p class="nav__label">Administration</p>
+          <button class="nav__item" data-view="users" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0 1 12 0" /><path d="M16 6.5a3 3 0 0 1 0 5.8M17 14.5a5.5 5.5 0 0 1 4 5.5" />
+            </svg>
+            <span>Users</span>
+          </button>
+          <button class="nav__item" data-view="allnotes" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h10" />
+            </svg>
+            <span>All Notes</span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="userbox">
+          <span class="avatar" id="sidebarAvatar">--</span>
+          <span class="userbox__meta">
+            <strong id="sidebarName">—</strong>
+            <small id="sidebarEmail">—</small>
+          </span>
+        </div>
+        <button class="btn btn--ghost btn--block" id="logoutBtn" type="button">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar__titles">
+          <h1 id="viewTitle">My Notes</h1>
+          <p class="muted" id="viewSubtitle">Everything you have written, private to your account.</p>
+        </div>
+        <div class="topbar__actions">
+          <span class="badge" id="roleBadge">user</span>
+          <button class="btn btn--icon" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <path d="M20 14.5A8 8 0 0 1 9.5 4a8.2 8.2 0 1 0 10.5 10.5Z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- My notes -->
+        <section class="view is-active" data-panel="notes">
+          <div class="toolbar">
+            <div class="toolbar__info"><span id="notesCount" class="muted">—</span></div>
+            <button class="btn btn--primary" id="newNoteBtn" type="button">+ New note</button>
+          </div>
+          <div class="grid" id="notesList"></div>
+          <div class="pager" data-pager="notes">
+            <button class="btn btn--ghost" data-page-prev type="button">Previous</button>
+            <span class="pager__info" data-page-info>—</span>
+            <button class="btn btn--ghost" data-page-next type="button">Next</button>
+          </div>
+        </section>
+
+        <!-- Posts -->
+        <section class="view" data-panel="posts">
+          <div class="toolbar">
+            <div class="toolbar__info"><span id="postsCount" class="muted">—</span></div>
+            <button class="btn btn--primary" id="newPostBtn" type="button">+ New post</button>
+          </div>
+          <div class="grid" id="postsList"></div>
+          <div class="pager" data-pager="posts">
+            <button class="btn btn--ghost" data-page-prev type="button">Previous</button>
+            <span class="pager__info" data-page-info>—</span>
+            <button class="btn btn--ghost" data-page-next type="button">Next</button>
+          </div>
+        </section>
+
+        <!-- Users (admin) -->
+        <section class="view" data-panel="users">
+          <div class="toolbar">
+            <div class="toolbar__info"><span id="usersCount" class="muted">—</span></div>
+            <button class="btn btn--primary" id="newUserBtn" type="button">+ Add user</button>
+          </div>
+          <div class="card card--flush">
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr><th>User</th><th>Role</th><th>Interests</th><th>Joined</th><th class="ta-right">Actions</th></tr>
+                </thead>
+                <tbody id="usersRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pager" data-pager="users">
+            <button class="btn btn--ghost" data-page-prev type="button">Previous</button>
+            <span class="pager__info" data-page-info>—</span>
+            <button class="btn btn--ghost" data-page-next type="button">Next</button>
+          </div>
+        </section>
+
+        <!-- All notes (admin) -->
+        <section class="view" data-panel="allnotes">
+          <div class="toolbar">
+            <div class="toolbar__info"><span id="allNotesCount" class="muted">—</span></div>
+          </div>
+          <div class="card card--flush">
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr><th>Title</th><th>Content</th><th>Owner</th><th>Created</th></tr>
+                </thead>
+                <tbody id="allNotesRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pager" data-pager="allnotes">
+            <button class="btn btn--ghost" data-page-prev type="button">Previous</button>
+            <span class="pager__info" data-page-info>—</span>
+            <button class="btn btn--ghost" data-page-next type="button">Next</button>
+          </div>
+        </section>
+
+        <!-- Aggregations -->
+        <section class="view" data-panel="aggregations">
+          <div class="card" data-admin-only hidden>
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">Users grouped by interest</h2>
+                <p class="muted">Single <code>User.aggregate()</code> call — <code>$unwind</code> then <code>$group</code>.</p>
+              </div>
+              <button class="btn btn--primary" id="loadInterestsBtn" type="button">Run pipeline</button>
+            </div>
+            <div id="interestsResult" class="card__body"></div>
+            <details class="raw" id="interestsRawWrap" hidden>
+              <summary>Raw response</summary>
+              <pre id="interestsRaw"></pre>
+            </details>
+          </div>
+
+          <div class="card">
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">Posts by user</h2>
+                <p class="muted">One pipeline with a <code>$lookup</code> into the posts collection.</p>
+              </div>
+            </div>
+            <div class="card__body">
+              <div class="inline-form">
+                <label class="field field--grow">
+                  <span class="field__label">User ID</span>
+                  <input class="input" id="lookupUserId" placeholder="ObjectId" />
+                </label>
+                <button class="btn btn--primary" id="lookupBtn" type="button">Run pipeline</button>
+              </div>
+              <div id="lookupResult"></div>
+            </div>
+            <details class="raw" id="lookupRawWrap" hidden>
+              <summary>Raw response</summary>
+              <pre id="lookupRaw"></pre>
+            </details>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODAL ============ -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header class="modal__head">
+        <h2 id="modalTitle">Note</h2>
+        <button class="btn btn--icon" type="button" data-close-modal aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+
+      <form id="noteForm" class="form form--modal" hidden>
+        <input type="hidden" name="id" />
+        <label class="field">
+          <span class="field__label">Title</span>
+          <input class="input" name="title" placeholder="Give it a title" required />
+        </label>
+        <label class="field">
+          <span class="field__label">Content</span>
+          <textarea class="input" name="content" rows="6" placeholder="Write something..." required></textarea>
+        </label>
+        <div class="modal__foot">
+          <button class="btn btn--ghost" type="button" data-close-modal>Cancel</button>
+          <button class="btn btn--primary" type="submit">Save note</button>
+        </div>
+      </form>
+
+      <form id="postForm" class="form form--modal" hidden>
+        <label class="field">
+          <span class="field__label">Title</span>
+          <input class="input" name="title" placeholder="Post title" required />
+        </label>
+        <label class="field">
+          <span class="field__label">Body</span>
+          <textarea class="input" name="body" rows="6" placeholder="Share something publicly..." required></textarea>
+        </label>
+        <div class="modal__foot">
+          <button class="btn btn--ghost" type="button" data-close-modal>Cancel</button>
+          <button class="btn btn--primary" type="submit">Publish post</button>
+        </div>
+      </form>
+
+      <form id="userForm" class="form form--modal" hidden>
+        <input type="hidden" name="id" />
+        <div class="form__grid">
+          <label class="field">
+            <span class="field__label">Full name</span>
+            <input class="input" name="name" required />
+          </label>
+          <label class="field">
+            <span class="field__label">Email</span>
+            <input class="input" name="email" type="email" required />
+          </label>
+          <label class="field">
+            <span class="field__label">Password</span>
+            <input class="input" name="password" type="password" placeholder="Required for new users" />
+          </label>
+          <label class="field">
+            <span class="field__label">Role</span>
+            <select class="input" name="role">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+        </div>
+        <label class="field">
+          <span class="field__label">Interests</span>
+          <input class="input" name="interests" placeholder="chess, reading" />
+          <span class="field__help">Comma separated.</span>
+        </label>
+        <div class="modal__foot">
+          <button class="btn btn--ghost" type="button" data-close-modal>Cancel</button>
+          <button class="btn btn--primary" type="submit">Save user</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
