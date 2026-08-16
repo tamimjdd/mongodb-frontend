@@ -1,4 +1,4 @@
-const API = '/api';
+const API = `${(window.API_BASE_URL || '').replace(/\/$/, '')}/api`;
 const PAGE_SIZE = 6;
 
 const VIEWS = {
